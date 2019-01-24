@@ -52,6 +52,13 @@ public:
 	const AString & blockTypeName() const { return mBlockTypeName; }
 	std::shared_ptr<cBlockHandler> handler() const { return mHandler; }
 
+	/** Sets (creates or updates) a hint. */
+	void setHint(const AString & aHintKey, const AString & aHintValue);
+
+	/** Removes a hint.
+	Silently ignored if the hint hasn't been previously set. */
+	void removeHint(const AString & aHintKey);
+
 
 private:
 
@@ -86,6 +93,7 @@ class BlockTypeRegistry
 public:
 	// fwd:
 	class AlreadyRegisteredException;
+	class NotRegisteredException;
 
 
 	/** Creates an empty new instance of the block type registry */
@@ -108,6 +116,22 @@ public:
 
 	/** Removes all registrations done by the specified plugin. */
 	void removeAllByPlugin(const AString & aPluginName);
+
+	/** Sets (adds or overwrites) a single Hint value for a BlockType.
+	Throws NotRegisteredException if the BlockTypeName is not registered. */
+	void setBlockTypeHint(
+		const AString & aBlockTypeName,
+		const AString & aHintKey,
+		const AString & aHintValue
+	);
+
+	/** Removes a previously registered single Hint value for a BlockType.
+	Throws NotRegisteredException if the BlockTypeName is not registered.
+	Silently ignored if the Hint hasn't been previously set. */
+	void removeBlockTypeHint(
+		const AString & aBlockTypeName,
+		const AString & aHintKey
+	);
 
 
 private:
@@ -155,4 +179,32 @@ private:
 		std::shared_ptr<BlockInfo> aPreviousRegistration,
 		std::shared_ptr<BlockInfo> aNewRegistration
 	);
+};
+
+
+
+
+
+/** The exception thrown from BlockTypeRegistry::setBlockTypeHint() if the block type has not been registered before. */
+class BlockTypeRegistry::NotRegisteredException: public std::runtime_error
+{
+	using Super = std::runtime_error;
+
+public:
+
+	/** Creates a new instance of the exception that provides info on both the original registration and the newly attempted
+	registration that caused the failure. */
+	NotRegisteredException(
+		const AString & aBlockTypeName,
+		const AString & aHintKey,
+		const AString & aHintValue
+	);
+
+	// Simple getters:
+	const AString & blockTypeName() const { return mBlockTypeName; }
+
+
+private:
+
+	const AString mBlockTypeName;
 };
